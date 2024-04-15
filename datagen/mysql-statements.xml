@@ -1,5 +1,23 @@
 <?xml  version="1.0"  encoding="UTF-8"?>
 <statements>
+        <statement>
+        <name>select_all_from_accounts</name>
+        <value>SELECT
+            id,
+            email,
+            password,
+            nickname,
+            phone_number,
+            virtual_number,
+            payment,
+            family_account_id,
+            points,
+            `rank`,
+            role,
+            created_on,
+            last_updated_on
+        FROM accounts</value>
+    </statement>
     <statement>
         <name>select_all_from_orders</name>
         <value>SELECT
@@ -23,7 +41,7 @@
             last_updated_on
         FROM orders</value>
     </statement>
-        <statement>
+    <statement>
         <name>insert_into_orders</name>
         <value>INSERT INTO orders
             id,
