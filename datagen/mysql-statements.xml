@@ -1,0 +1,66 @@
+<?xml  version="1.0"  encoding="UTF-8"?>
+<statements>
+    <statement>
+        <name>select_all_from_orders</name>
+        <value>SELECT
+            id,
+            account_id,
+            store_id,
+            status,
+            payment,
+            delivery_type,
+            delivery_id,
+            address,
+            phone_number,
+            price,
+            delivery_fee,
+            total_price,
+            virtual_number,
+            wants_disposables,
+            favor_store,
+            favor_delivery,
+            created_on,
+            last_updated_on
+        FROM orders</value>
+    </statement>
+        <statement>
+        <name>insert_into_orders</name>
+        <value>INSERT INTO orders
+            id,
+            account_id,
+            store_id,
+            status,
+            payment,
+            delivery_type,
+            delivery_id,
+            address,
+            phone_number,
+            price,
+            delivery_fee,
+            total_price,
+            virtual_number,
+            wants_disposables,
+            favor_store,
+            favor_delivery,
+            created_on,
+            last_updated_on
+        VALUES ({id},
+            {account_id},
+            {store_id},
+            {status},
+            {payment},
+            {delivery_type},
+            {delivery_id},
+            {address},
+            {phone_number},
+            {price},
+            {delivery_fee},
+            {total_price},
+            {virtual_number},
+            {wants_disposables},
+            {favor_store},
+            {favor_delivery},
+            {created_on},
+            {last_updated_on})</value>
+    </statement>
+</statements>
