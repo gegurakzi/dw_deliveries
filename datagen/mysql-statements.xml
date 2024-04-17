@@ -1,84 +1,152 @@
 <?xml  version="1.0"  encoding="UTF-8"?>
 <statements>
         <statement>
-        <name>select_all_from_accounts</name>
-        <value>SELECT
-            id,
-            email,
-            password,
-            nickname,
-            phone_number,
-            virtual_number,
-            payment,
-            family_account_id,
-            points,
-            `rank`,
-            role,
-            created_on,
-            last_updated_on
-        FROM accounts</value>
+        <name>query_all_accounts</name>
+        <value>
+SELECT
+    id,
+    email,
+    password,
+    nickname,
+    phone_number,
+    virtual_number,
+    payment,
+    family_account_id,
+    points,
+    `rank`,
+    role,
+    created_on,
+    last_updated_on
+FROM accounts
+        </value>
     </statement>
     <statement>
-        <name>select_all_from_orders</name>
-        <value>SELECT
-            id,
-            account_id,
-            store_id,
-            status,
-            payment,
-            delivery_type,
-            delivery_id,
-            address,
-            phone_number,
-            price,
-            delivery_fee,
-            total_price,
-            virtual_number,
-            wants_disposables,
-            favor_store,
-            favor_delivery,
-            created_on,
-            last_updated_on
-        FROM orders</value>
+        <name>query_all_orders</name>
+        <value>
+SELECT
+    id,
+    account_id,
+    store_id,
+    status,
+    payment,
+    delivery_type,
+    delivery_id,
+    address,
+    phone_number,
+    price,
+    delivery_fee,
+    total_price,
+    virtual_number,
+    wants_disposables,
+    favor_store,
+    favor_delivery,
+    created_on,
+    last_updated_on
+FROM orders
+        </value>
     </statement>
     <statement>
-        <name>insert_into_orders</name>
-        <value>INSERT INTO orders
-            id,
-            account_id,
-            store_id,
-            status,
-            payment,
-            delivery_type,
-            delivery_id,
-            address,
-            phone_number,
-            price,
-            delivery_fee,
-            total_price,
-            virtual_number,
-            wants_disposables,
-            favor_store,
-            favor_delivery,
-            created_on,
-            last_updated_on
-        VALUES ({id},
-            {account_id},
-            {store_id},
-            {status},
-            {payment},
-            {delivery_type},
-            {delivery_id},
-            {address},
-            {phone_number},
-            {price},
-            {delivery_fee},
-            {total_price},
-            {virtual_number},
-            {wants_disposables},
-            {favor_store},
-            {favor_delivery},
-            {created_on},
-            {last_updated_on})</value>
+        <name>insert_order</name>
+        <value>
+INSERT INTO orders
+    id,
+    account_id,
+    store_id,
+    status,
+    payment,
+    delivery_type,
+    delivery_id,
+    address,
+    phone_number,
+    price,
+    delivery_fee,
+    total_price,
+    virtual_number,
+    wants_disposables,
+    favor_store,
+    favor_delivery,
+    created_on,
+    last_updated_on
+VALUES ({id},
+    {account_id},
+    {store_id},
+    {status},
+    {payment},
+    {delivery_type},
+    {delivery_id},
+    {address},
+    {phone_number},
+    {price},
+    {delivery_fee},
+    {total_price},
+    {virtual_number},
+    {wants_disposables},
+    {favor_store},
+    {favor_delivery},
+    {created_on},
+    {last_updated_on})
+        </value>
+    </statement>
+    <statement>
+        <name>query_account_to_order</name>
+        <value>
+SELECT
+    ac.id AS account_id,
+    ac.payment AS payment,
+    CONCAT(ad.first_address, ' ', ad.second_address) AS address,
+    ac.phone_number AS phone_number,
+    ac.virtual_number AS virtual_number,
+    ad.favor AS favor_delivery
+FROM accounts ac
+JOIN deliveries.addresses ad ON ac.id = ad.account_id AND ad.is_current IS TRUE;
+        </value>
+    </statement>
+        <statement>
+        <name>query_store_to_order</name>
+        <value>
+SELECT
+    s.id AS store_id
+FROM stores s;
+        </value>
+    </statement>
+    <statement>
+        <name>query_delivery_info_of_store_to_order</name>
+        <value>
+SELECT
+    di.delivery_type AS delivery_type,
+    di.max_fee AS delivery_fee
+FROM delivery_informations di
+WHERE di.store_id = {storeId}
+        </value>
+    </statement>
+    <statement>
+        <name>query_carts_to_orderline</name>
+        <value>
+SELECT
+    c.account_id AS account_id,
+    p.store_id AS store_id,
+    c.product_id AS product_id,
+    c.options AS options,
+    c.amount AS amount,
+    p.price * c.amount AS orderline_price
+FROM carts c
+JOIN products p ON c.product_id = p.id
+WHERE c.account_id = {accountId}
+    AND p.store_id = {storeId}
+        </value>
+    </statement>
+    <statement>
+        <name>update_order_placement</name>
+        <value>
+UPDATE orders o
+SET o.price = (
+    SELECT SUM(ol.amount * p.price) FROM orderlines ol
+    JOIN products p on ol.product_id = p.id
+    WHERE ol.order_id = o.id
+    GROUP BY o.id
+),
+o.status = 'PLACED'
+WHERE o.id = {orderId};
+        </value>
     </statement>
 </statements>
