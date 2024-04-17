@@ -1,0 +1,88 @@
+import pandas as pd
+from pandas import DataFrame
+
+from sqlalchemy import select, update, delete
+
+from application import modelers
+
+from domain.models import Account, Address, Store, Cart, Product, DeliveryInformation
+
+
+class Service:
+
+    def __init__(self, session):
+        self.session = session
+
+    def account_register(self):
+        new_account = modelers.random_account()
+        self.session.add(new_account)
+        new_address = modelers.random_address(new_account.id)
+        self.session.add(new_address)
+
+    def send_alarm(self, account_id):
+        new_alarm = modelers.random_alarm(account_id)
+        self.session.add(new_alarm)
+
+    def family_account_register(self, account_ids):
+        new_family_account = modelers.random_family_account(account_ids[0])
+        self.session.add(new_family_account)
+        self.session.execute(
+            update(Account).where(Account.id.in_(account_ids)).values(family_account_id=new_family_account.id)
+        )
+
+    def store_register(self):
+        new_store = modelers.random_store()
+        self.session.add(new_store)
+
+    def add_favorite(self, account_id, store_id):
+        new_favorite = modelers.favorite(account_id, store_id)
+        self.session.add(new_favorite)
+
+    def add_product(self, storeId):
+        newProduct = modelers.random_product(storeId)
+        self.session.add(newProduct)
+
+    def add_cart(self, accountId, productId):
+        newCart = modelers.cart(accountId, productId)
+        self.session.add(newCart)
+
+    def clear_cart(self, accountId):
+        self.session.execute(
+            delete(Cart).where(Cart.account_id == accountId)
+        )
+
+    def query_all_accounts(self) -> DataFrame:
+        return pd.DataFrame(self.session.execute(
+            select(Account)
+        ).all())
+
+    def query_sole_accounts(self) -> DataFrame:
+        return pd.DataFrame(self.session.execute(
+            select(Account).where(Account.family_account_id == None)
+        ).all())
+
+    def query_in_cart_accounts(self) -> DataFrame:
+        return pd.DataFrame(self.session.execute(
+            (select(Cart.account_id, Account).distinct()).join(Account, Cart.account_id == Account.id)
+        ).all())['Account']
+
+    def query_all_stores(self) -> DataFrame:
+        return pd.DataFrame(self.session.execute(
+            select(Store)
+        ).all())
+
+    def query_products(self, storeId) -> DataFrame:
+        return pd.DataFrame(self.session.execute(
+            select(Product).where(Product.store_id == storeId)
+        ).all())
+
+    def query_in_cart_store(self, accountId) -> str:
+        return list(map(lambda x: x[0], self.session.execute(
+            select(Product.store_id).join(Cart, Cart.product_id == Product.id).where(Cart.account_id == accountId)
+            .distinct()
+        ).all()))[0]
+
+    def query_delivery_info_of_store(self, storeId) -> DataFrame:
+        return pd.DataFrame(self.session.execute(
+            select(DeliveryInformation).where(DeliveryInformation.store_id == storeId)
+        ).all())

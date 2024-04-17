@@ -1,10 +1,7 @@
 import uuid
 
-from domain.models import Account, FamilyAccount, Address, Alarm
+from domain.models import Account, FamilyAccount, Address, Alarm, Store, Favorite, Product, Cart
 from application import randomizer
-from sqlalchemy.testing.pickleable import Order
-
-from datagen.domain.models import Store, Favorite
 
 
 def random_account() -> Account:
@@ -72,4 +69,24 @@ def favorite(account_id, store_id) -> Favorite:
         id=uuid.uuid4().hex,
         account_id=account_id,
         store_id=store_id
+    )
+
+def random_product(storeId) -> Product:
+    return Product(
+        id=uuid.uuid4().hex,
+        store_id=storeId,
+        name='음식',
+        options='{}',
+        description='음식 소개',
+        image='',
+        price=randomizer.choose(list(range(5, 21))) * 1000
+    )
+
+def cart(accountId, productId) -> Cart:
+    return Cart(
+        id=uuid.uuid4().hex,
+        account_id=accountId,
+        product_id=productId,
+        options='{}',
+        amount=randomizer.choose(list(range(1, 5)))
     )
