@@ -89,7 +89,10 @@ session.commit()
 # 주문 생성
 accountIds = service.query_in_cart_accounts().map(lambda x: x.id)
 for accountId in accountIds.values.tolist():
-    storeId = service.query_in_cart_store(accountId)
+    address = service.query_current_address(accountId)
+    storeId = service.query_one_store_in_cart(accountId)
+    delivery_info = randomizer.choose(service.query_delivery_info_of_store(storeId).values.tolist())
+
 # TODO
 
 

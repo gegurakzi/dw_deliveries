@@ -61,6 +61,11 @@ class Service:
             select(Account).where(Account.family_account_id == None)
         ).all())
 
+    def query_current_address(self, accountId) -> Address:
+        return self.session.execute(
+            select(Address).where(Address.account_id == accountId, Address.is_current).limit(1)
+            ).scalar()
+
     def query_in_cart_accounts(self) -> DataFrame:
         return pd.DataFrame(self.session.execute(
             (select(Cart.account_id, Account).distinct()).join(Account, Cart.account_id == Account.id)
@@ -76,11 +81,14 @@ class Service:
             select(Product).where(Product.store_id == storeId)
         ).all())
 
-    def query_in_cart_store(self, accountId) -> str:
-        return list(map(lambda x: x[0], self.session.execute(
-            select(Product.store_id).join(Cart, Cart.product_id == Product.id).where(Cart.account_id == accountId)
-            .distinct()
-        ).all()))[0]
+    def query_one_store_in_cart(self, accountId) -> Store:
+        return self.session.execute(
+            select(Store)
+            .where(Store.id.in_(
+                select(Product.store_id).distinct()
+                .join(Cart, Cart.product_id == Product.id)
+                .where(Cart.account_id == accountId)
+            )).limit(1)).scalar()
 
     def query_delivery_info_of_store(self, storeId) -> DataFrame:
         return pd.DataFrame(self.session.execute(
