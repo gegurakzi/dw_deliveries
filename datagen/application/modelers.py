@@ -1,6 +1,6 @@
 import uuid
 
-from domain.models import Account, FamilyAccount, Address, Alarm, Store, Favorite, Product, Cart
+from domain.models import Account, FamilyAccount, Address, Alarm, Store, Favorite, Product, Cart, DeliveryInformation
 from application import randomizer
 
 
@@ -30,6 +30,7 @@ def random_family_account(owner_id) -> FamilyAccount:
 def random_address(user_id) -> Address:
     return Address(
         id=uuid.uuid4().hex,
+        is_current=True,
         account_id=user_id,
         name="기본주소",
         first_address="서울시",
@@ -62,6 +63,15 @@ def random_store() -> Store:
         taxpayer_address="서울시 어딘가",
         taxpayer_id_number="00-000-00000",
         ingredients="돼지고기(국산),김치(중국산)"
+    )
+
+def random_delivery_info(storeId, type) -> DeliveryInformation:
+    return DeliveryInformation(
+        id=uuid.uuid4().hex,
+        store_id=storeId,
+        delivery_type=type,
+        min_fee=2000,
+        max_fee=4000
     )
 
 def favorite(account_id, store_id) -> Favorite:

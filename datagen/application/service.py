@@ -30,9 +30,13 @@ class Service:
             update(Account).where(Account.id.in_(account_ids)).values(family_account_id=new_family_account.id)
         )
 
-    def store_register(self):
+    def add_store(self):
         new_store = modelers.random_store()
         self.session.add(new_store)
+
+    def add_delivery_information(self, storeId, type):
+        new_delivery_info = modelers.random_delivery_info(storeId, type)
+        self.session.add(new_delivery_info)
 
     def add_favorite(self, account_id, store_id):
         new_favorite = modelers.favorite(account_id, store_id)
@@ -66,10 +70,17 @@ class Service:
             select(Address).where(Address.account_id == accountId, Address.is_current).limit(1)
             ).scalar()
 
-    def query_in_cart_accounts(self) -> DataFrame:
+    def query_accounts_in_cart(self) -> DataFrame:
         return pd.DataFrame(self.session.execute(
             (select(Cart.account_id, Account).distinct()).join(Account, Cart.account_id == Account.id)
         ).all())['Account']
+
+    def query_products_in_cart(self, accountId) -> DataFrame:
+        return pd.DataFrame(self.session.execute(
+            (select(Product, Cart.options, Cart.amount).join(Cart, Product.id == Cart.product_id)
+             .join(Account, Cart.account_id == Account.id)
+             .where(Account.id == accountId))
+        ).all())
 
     def query_all_stores(self) -> DataFrame:
         return pd.DataFrame(self.session.execute(

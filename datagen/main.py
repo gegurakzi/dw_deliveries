@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
@@ -7,7 +8,7 @@ from sqlalchemy.orm import declarative_base
 from application import service
 from application import randomizer
 
-from domain.models import Account, Address, Store
+from domain.models import Account, Address, Store, Order, Orderline
 
 # create an engine to connect to a database
 with open('conf.json') as f:
@@ -49,8 +50,14 @@ session.commit()
 
 # 매장 생성
 for i in range(10):
-    service.store_register()
+    service.add_store()
 session.commit()
+
+# 배달 정보 생성
+storeIds = service.query_all_stores().map(lambda x: x.id)
+for storeId in storeIds.values.tolist():
+    service.add_delivery_information(storeId, '한집배달')
+    service.add_delivery_information(storeId, '알뜰배달')
 
 # 매장 찜
 account_ids = service.query_all_accounts().map(lambda x: x.id)
@@ -87,13 +94,45 @@ for accountId in accountIds.values.tolist():
 session.commit()
 
 # 주문 생성
-accountIds = service.query_in_cart_accounts().map(lambda x: x.id)
-for accountId in accountIds.values.tolist():
-    address = service.query_current_address(accountId)
-    storeId = service.query_one_store_in_cart(accountId)
-    delivery_info = randomizer.choose(service.query_delivery_info_of_store(storeId).values.tolist())
-
-# TODO
-
+accounts = service.query_accounts_in_cart()
+for account in accounts.values.tolist():
+    address = service.query_current_address(account.id)
+    store = service.query_one_store_in_cart(account.id)
+    delivery_infos = service.query_delivery_info_of_store(store.id).values.tolist()
+    delivery_info = randomizer.choose(delivery_infos)[0]
+    cart = service.query_products_in_cart(account.id)
+    orderId = uuid.uuid4().hex
+    orderlines = []
+    price = 0
+    for idx, row in cart.iterrows():
+        orderline = Orderline(
+            id=uuid.uuid4().hex,
+            order_id=orderId,
+            product_id=row['Product'].id,
+            options=row['options'],
+            amount=row['amount']
+        )
+        orderlines.append(orderline)
+        price += row['Product'].price * row['amount']
+    order = Order(
+        id=orderId,
+        account_id=account.id,
+        store_id=storeId,
+        status='CREATED',
+        payment=account.payment,
+        delivery_type=delivery_info.delivery_type,
+        address=address.first_address+' '+address.second_address,
+        phone_number=account.phone_number,
+        price=price,
+        delivery_fee=delivery_info.max_fee,
+        total_price=price + delivery_info.max_fee,
+        virtual_number=account.virtual_number,
+        wants_disposables=True,
+        favor_store='가게요청',
+        favor_delivery=address.favor
+    )
+    for orderline in orderlines:
+        session.add(orderline)
+    session.add(order)
 
 session.commit()
