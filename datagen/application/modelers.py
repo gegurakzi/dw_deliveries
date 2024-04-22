@@ -1,6 +1,7 @@
 import uuid
 
-from domain.models import Account, FamilyAccount, Address, Alarm, Store, Favorite, Product, Cart, DeliveryInformation
+from domain.models import Account, FamilyAccount, Address, Alarm, Store, Favorite, Product, Cart, DeliveryInformation, \
+    Review, ReviewTag
 from application import randomizer
 
 
@@ -99,4 +100,26 @@ def cart(accountId, productId) -> Cart:
         product_id=productId,
         options='{}',
         amount=randomizer.choose(list(range(1, 5)))
+    )
+
+def random_review(accountId, storeId) -> Review:
+    return Review(
+        id=uuid.uuid4().hex,
+        account_id=accountId,
+        store_id=storeId,
+        ratings_delivery=randomizer.choose([1, 2, 3, 4, 5]),
+        ratings_food=randomizer.choose([1, 2, 3, 4, 5]),
+        content="좋아요",
+        reply_id=None,
+        is_public=True,
+        shows_orders=True
+    )
+
+def random_review_tag(reviewId, productId) -> ReviewTag:
+    return ReviewTag(
+        id=uuid.uuid4().hex,
+        review_id=reviewId,
+        product_id=productId,
+        recommend=randomizer.choose([True, False]),
+        comment="맛있어요"
     )

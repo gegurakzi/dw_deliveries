@@ -5,7 +5,7 @@ from sqlalchemy import select, update, delete
 
 from application import modelers
 
-from domain.models import Account, Address, Store, Cart, Product, DeliveryInformation
+from domain.models import Account, Address, Store, Cart, Product, DeliveryInformation, Order, Orderline
 
 
 class Service:
@@ -49,6 +49,15 @@ class Service:
     def add_cart(self, accountId, productId):
         newCart = modelers.cart(accountId, productId)
         self.session.add(newCart)
+
+    def add_review(self, accountId, storeId):
+        newReview = modelers.random_review(accountId, storeId)
+        self.session.add(newReview)
+        return newReview
+
+    def add_review_tag(self, reviewId, productId):
+        newReviewTag = modelers.random_review_tag(reviewId, productId)
+        self.session.add(newReviewTag)
 
     def clear_cart(self, accountId):
         self.session.execute(
@@ -104,4 +113,16 @@ class Service:
     def query_delivery_info_of_store(self, storeId) -> DataFrame:
         return pd.DataFrame(self.session.execute(
             select(DeliveryInformation).where(DeliveryInformation.store_id == storeId)
+        ).all())
+
+    def query_accounts_and_orders(self) -> DataFrame:
+        return pd.DataFrame(self.session.execute(
+            select(Account, Order).join(Order, Account.id == Order.account_id)
+        ).all())
+
+    def query_product_of_order(self, orderId) -> DataFrame:
+        return pd.DataFrame(self.session.execute(
+            select(Product)
+            .join(Orderline, Product.id == Orderline.product_id)
+            .where(Orderline.order_id == orderId)
         ).all())

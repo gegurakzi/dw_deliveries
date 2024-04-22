@@ -135,4 +135,17 @@ for account in accounts.values.tolist():
         session.add(orderline)
     session.add(order)
 
+# 리뷰, 리뷰 태그 생성
+accountOrders = service.query_accounts_and_orders()
+accounts = accountOrders['Account']
+orders = accountOrders['Order']
+for i in range(accounts.size):
+    newReview = service.add_review(accounts[i].id, orders[i].store_id)
+    reviewItems = service.query_product_of_order(orders[i].id)
+    for idx, row in reviewItems.iterrows():
+        service.add_review_tag(newReview.id, row['Product'].id)
+
+# 사장님 답글 생성
+
+
 session.commit()
