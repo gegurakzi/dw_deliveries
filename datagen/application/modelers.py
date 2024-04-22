@@ -1,7 +1,7 @@
 import uuid
 
 from domain.models import Account, FamilyAccount, Address, Alarm, Store, Favorite, Product, Cart, DeliveryInformation, \
-    Review, ReviewTag
+    Review, ReviewTag, Reply
 from application import randomizer
 
 
@@ -122,4 +122,10 @@ def random_review_tag(reviewId, productId) -> ReviewTag:
         product_id=productId,
         recommend=randomizer.choose([True, False]),
         comment="맛있어요"
+    )
+
+def random_reply() -> Reply:
+    return Reply(
+        id=uuid.uuid4().hex,
+        content="감사합니다"
     )

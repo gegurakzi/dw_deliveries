@@ -146,6 +146,7 @@ for i in range(accounts.size):
         service.add_review_tag(newReview.id, row['Product'].id)
 
 # 사장님 답글 생성
-
-
+reviews = service.query_all_reviews()
+for idx, row in reviews.iterrows():
+    randomizer.random_call(service.add_reply, args=[row['Review'].id], probability=0.3)
 session.commit()
